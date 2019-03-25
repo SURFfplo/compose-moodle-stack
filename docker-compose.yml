@@ -14,12 +14,12 @@ services:
             placement:
                 constraints: [node.role == manager]
     moodle:
-        image: zebradil/moodle
-        build: ../image-moodle-ovl
+        image: moodle
+        build: ../image-moodle
         ports:
             - 80:80
         volumes:
-            - ./.data/moodle:/var/moodledata
+            - .data/moodle:/var/moodledata
         environment:
             MOODLE_DB_TYPE: mysqli
             MOODLE_DB_HOST: db
