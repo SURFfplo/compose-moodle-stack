@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+    moodle-db:
+        image: mysql:5.7
+        volumes:
+            - .data/moodle/moodle-db:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        deploy:
+            placement:
+                constraints: [node.role == manager]
+    moodle:
+        image: zebradil/moodle
+        build: ../image-moodle-ovl
+        ports:
+            - 80:80
+        volumes:
+            - ./.data/moodle:/var/moodledata
+        environment:
+            MOODLE_DB_TYPE: mysqli
+            MOODLE_DB_HOST: db
+            MOODLE_DB_NAME: ${MYSQL_DATABASE}
+            MOODLE_DB_USER: ${MYSQL_USER}
+            MOODLE_DB_PASS: ${MYSQL_PASSWORD}
+            MOODLE_URL: ${MOODLE_URL}
