@@ -14,7 +14,8 @@ initial_startup.sh
 
 # data uitwisseling 
 Aanaken van een admin user
-Aanmaken van toegang tot de webservices en de bijbehorende tokens op basis vande bestaande user
+Aanmaken van toegang tot de webservices en de bijbehorende tokens op basis van de bestaande user
+
 Here you will find instructions to create Web Services on Moodle.
 I am not a Moodle expert. I have collected the information below from may different sources and I have eliminated their errors to give you an easy to follow tutorial together with a working example.
 This tutorial creates a web service enabled to create a new user and then enroll this user to a course.
