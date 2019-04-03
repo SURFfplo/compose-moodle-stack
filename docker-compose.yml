@@ -1,29 +1,69 @@
 version: "3.7"
 
 services:
-    moodle-db:
-        image: mysql:5.7
-        volumes:
-            - .data/moodle/moodle-db:/var/lib/mysql
-        environment:
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-            MYSQL_DATABASE: ${MYSQL_DATABASE}
-            MYSQL_USER: ${MYSQL_USER}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-        deploy:
-            placement:
-                constraints: [node.role == manager]
-    moodle:
-        image: moodle
-        build: ../image-moodle
-        ports:
-            - 80:80
-        volumes:
-            - .data/moodle:/var/moodledata
-        environment:
-            MOODLE_DB_TYPE: mysqli
-            MOODLE_DB_HOST: db
-            MOODLE_DB_NAME: ${MYSQL_DATABASE}
-            MOODLE_DB_USER: ${MYSQL_USER}
-            MOODLE_DB_PASS: ${MYSQL_PASSWORD}
-            MOODLE_URL: ${MOODLE_URL}
+  moodle-db:
+    image: mysql:5.7
+    secrets:
+      - moodle_db_root_pwd
+      - moodle_db_dba_pwd
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 256M
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_USER: moodledba 
+      MYSQL_DATABASE: moodledb
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/moodle_db_root_pwd
+      MYSQL_PASSWORD_FILE: /run/secrets/moodle_db_dba_pwd
+    networks:
+      - appnet
+    volumes:
+      - .data/moodle/moodledb:/var/lib/mysql
+      - /var/run/docker.sock:/var/run/docker.sock
+    configs:
+      - source: my_cnf
+        target: /etc/mysql/conf.d/my.cnf
+
+  moodle:
+    build: ../image-moodle
+    image: moodle
+    deploy:
+      replicas: 1
+    secrets:
+      - moodle_db_root_pwd
+      - moodle_db_dba_pwd
+    environment:
+      MOODLE_DB_TYPE: mysqli
+      MOODLE_DB_HOST: moodle-db
+      MOODLE_DB_NAME: moodledb
+      MOODLE_DB_USER: moodledba 
+      MOODLE_DB_PSWD_FILE: /run/secrets/moodle_db_dba_pwd
+      MOODLE_URL: http://localhost
+    networks:
+      - appnet
+    volumes:
+      - .data/moodle/data:/var/moodledata
+    ports:
+      - 80:80
+
+secrets:
+  moodle_db_root_pwd:
+    external: true
+  moodle_db_dba_pwd:
+    external: true
+
+configs:
+  my_cnf:
+    external: true
+
+networks:
+  appnet:
+    external: true
+
